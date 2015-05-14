@@ -1,0 +1,143 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsthm, amssymb, amsmath}
+\usepackage{rotating}
+\usepackage{verbatim}
+\usepackage{enumerate}
+\usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry}
+\usepackage{multicol} % Used for the two-column layout of the document
+\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption}
+\usepackage{booktabs} % Horizontal rules in tables
+\usepackage{hyperref} % For hyperlinks in the PDF
+\usepackage[shortlabels]{enumitem}
+\usepackage{abstract} % Allows abstract customization
+\renewcommand{\abstractnamefont}{\normalfont\bfseries} % Set the ``Abstract'' text to bold
+\renewcommand{\abstracttextfont}{\normalfont\small\itshape} % Set the abstract itself to small italic text
+
+\usepackage{titlesec} % Allows customization of titles
+\titlelabel{\thetitle.\quad}
+%\renewcommand\thesection{\Roman{section}} % Roman numerals for the sections
+%\renewcommand\thesubsection{\Roman{subsection}} % Roman numerals for subsections
+%\titleformat{\section}[block]{\large\scshape\centering}{\thesection.}{1em}{} % Change the look of the section titles
+%\titleformat{\subsection}[block]{\large}{\thesubsection.}{1em}{} % Change the look of the section titles
+
+\usepackage{fancyhdr} % Headers and footers
+\pagestyle{fancy} % All pages have headers and footers
+\fancyhead{} % Blank out the default header
+\fancyfoot{} % Blank out the default footer
+\fancyhead[C]{May 2015} % Custom header text
+\fancyfoot[RO,LE]{\thepage} % Custom footer text
+
+\linespread{1.05}
+\bibliographystyle{plain}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{theorem}{Theorem}
+
+
+% --------------------
+% TITLE SECTION
+% --------------------
+
+\title{\vspace{-5mm}\fontsize{22pt}{10pt}\selectfont Smoothed Analysis in Learning: Tensors and $k$-Means}
+
+\author{
+\large
+\textsc{Hunter Lang} \\
+\normalsize MIT \\
+\normalsize \href{mailto:hjl@mit.edu}{\texttt{hjl@mit.edu}}\\
+\and
+\textsc{Carlos Cortez} \\
+\normalsize MIT \\
+\normalsize \href{mailto:cortezc@mit.edu}{\texttt{cortezc@mit.edu}}\\
+\vspace{-5mm}
+}
+\date{}
+
+\begin{document}
+\maketitle
+
+%--------------------
+% ABSTRACT
+%--------------------
+
+\begin{abstract}
+\noindent Most learning problems are hard in the worst-case, so much
+of the current research focuses on finding good heuristics,
+polynomial-time approximation algorithms, or special cases with
+proveable accuracy and runtime guarantees. But many algorithms that
+are inefficient in the worst case (Simplex being the classical
+example) consistently seem to run fast in practice. Smoothed analysis
+gives a framework for better understanding performance on real-world
+data, specifically for problems where some component is not
+adversarial. This is a natural assumption in learning, since data in
+the learning setting are usually prone to measurement or modeling
+noise. We survey the (very much ongoing) application of smoothed
+analysis to learning problems by way of two examples: $k$-means and
+tensor decomposition.
+\end{abstract}
+
+\section{Introduction}
+Spielman and Teng \cite{SA}, \cite{SAtwo} introduced smooth analysis
+to give a more suitable framework for predicting real-life algorithm
+performance. Not every algorithm that runs fast in practice is
+polynomial-time; worst-case analysis falls short of explaining why
+some ``slow'' algorithms are actually quite efficient in practice. The
+original paper \cite{SA} gave a proof that the Simplex algorithm has
+polynomial ``smoothed complexity'': that is, if you assume the data
+are subject to random perturbations (the kind that would arise from
+measurement noise in practice), Simplex runs in expected polynomial
+time. This sparked a host of smoothed analysis proofs involving
+classic combinatorial optimization problems. [EXAMPLES]. The key
+assumption inherent in applying smoothed analysis techniques to an
+algorithm is that some component of the problem is not
+adversarial. The hope is that worst-case inputs are somehow isolated
+in the input space (indeed, the worst-case inputs to many algorithms
+are intricate and fragile), so that any real data will, with high
+probability, not be worst-case. In recent years, there has been an increasing trend of applying smoothed analysis to learning problems \cite{SAtwo}, \cite{SAkmeans}, \cite{PAC}, \cite{TD}.
+
+\section{Tensor Decomposition}
+\subsection{Algorithm}
+\subsection{Worst-case}
+\subsection{Smoothed Analysis}
+
+\section{Conclusion}
+
+\begin{thebibliography}{1}
+  \bibitem{SA}
+    Daniel A. Spielman and Shang{-}Hua Teng,
+    ``Smoothed Analysis of Algorithms: Why the Simplex Algorithm Usually takes Polynomial Time.''
+    \emph{Journal of the ACM, Vol 51 (3)},
+    pp. 385 - 463,
+    2004.
+
+  \bibitem{SAtwo}
+    Daniel A. Spielman and Shang{-}Hua Teng,
+    ``Smoothed Analysis: An Attempt to Explain the Behavior of Algorithms in Practice''
+    \emph{Communications of the ACM, Vol. 52 No. 10},
+    pp. 76-84,
+    2009.
+
+  \bibitem{KMworstcase}
+    Andrea Vattani,
+    ``k-means Requires Exponentially Many Iterations Even in the Plane.'' 
+    \emph{ Proc. of the 25th ACM Symp. on Computational Geometry (SoCG)}, 
+    pp 324–332, 
+    2009.
+    
+  \bibitem{SAkmeans}
+    David Arthur, Bodo Manthey, and Heiko Roeglin,
+    ``Smoothed Analysis of the $k$-means Method.''
+    2010.
+
+  \bibitem{PAC}
+
+  \bibitem{TD}
+    Aditya Bhaskara, Moses Charikar, Ankur Moitra, and Aravindan Vijayaraghavan,
+    ``Smoothed Analysis of Tensor Decomposition'',
+    CoRR,
+    2013.
+
+\end{thebibliography}
+\end{document}

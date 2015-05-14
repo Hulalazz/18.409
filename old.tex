@@ -1,0 +1,161 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsthm, amssymb, amsmath}
+\usepackage{rotating}
+\usepackage{verbatim}
+\usepackage{enumerate}
+\usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry}
+\usepackage{multicol} % Used for the two-column layout of the document
+\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption}
+\usepackage{booktabs} % Horizontal rules in tables
+\usepackage{hyperref} % For hyperlinks in the PDF
+\usepackage[shortlabels]{enumitem}
+\usepackage{abstract} % Allows abstract customization
+\renewcommand{\abstractnamefont}{\normalfont\bfseries} % Set the ``Abstract'' text to bold
+\renewcommand{\abstracttextfont}{\normalfont\small\itshape} % Set the abstract itself to small italic text
+
+\usepackage{titlesec} % Allows customization of titles
+\titlelabel{\thetitle.\quad}
+%\renewcommand\thesection{\Roman{section}} % Roman numerals for the sections
+%\renewcommand\thesubsection{\Roman{subsection}} % Roman numerals for subsections
+%\titleformat{\section}[block]{\large\scshape\centering}{\thesection.}{1em}{} % Change the look of the section titles
+%\titleformat{\subsection}[block]{\large}{\thesubsection.}{1em}{} % Change the look of the section titles
+
+\usepackage{fancyhdr} % Headers and footers
+\pagestyle{fancy} % All pages have headers and footers
+\fancyhead{} % Blank out the default header
+\fancyfoot{} % Blank out the default footer
+\fancyhead[C]{May 2015} % Custom header text
+\fancyfoot[RO,LE]{\thepage} % Custom footer text
+
+\linespread{1.05}
+\bibliographystyle{plain}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{theorem}{Theorem}
+
+
+% --------------------
+% TITLE SECTION
+% --------------------
+
+\title{\vspace{-5mm}\fontsize{22pt}{10pt}\selectfont Smoothed Analysis in Learning: Tensors and $k$-Means}
+
+\author{
+\large
+\textsc{Hunter Lang} \\
+\normalsize MIT \\
+\normalsize \href{mailto:hjl@mit.edu}{\texttt{hjl@mit.edu}}\\
+\and
+\textsc{Carlos Cortez} \\
+\normalsize MIT \\
+\normalsize \href{mailto:cortezc@mit.edu}{\texttt{cortezc@mit.edu}}\\
+\vspace{-5mm}
+}
+\date{}
+
+\begin{document}
+\maketitle
+
+%--------------------
+% ABSTRACT
+%--------------------
+
+\begin{abstract}
+\noindent Most learning problems are hard in the worst-case, so much
+of the current research focuses on finding special cases with provably
+good time complexities, or polynomial-time approximation algorithms. But many algorithms (Simplex being the
+classical example) seem to consistently run fast
+in practice. Smoothed
+analysis combines worst-case and average-case analysis to better
+approximate real-world algorithm performance and close the gap between
+theoretical and practical results. Here we survey the application of
+smoothed analysis to $k$-means and tensor decomposition, and show that
+both problems admit algorithms with polynomial smoothed complexity, in line with empirical oberservations.
+\end{abstract}
+
+\section{Introduction}
+-smoothed analysis
+
+--what is it? option when theory is far from practice, so good in the
+learning setting. randomly perturb (``smooth'') part of a problem and
+examine what happens on that smoothed instance.give a few classic examples here; simplex, tsp.
+
+--what assumptions does it make about the data? when is it useful to
+apply?  when something about problem is not adversarial; i.e. may
+arise randomly in practice.
+
+--smoothed analysis in learning. still new; people unsure where to
+apply it: lots of different things to smooth. smooth distribution or
+smooth points? what does it mean to smooth distribution? don't
+know. classically in SA there's one clear thing to smooth but in
+learning we don't really know what's best yet. these 2 papers contain
+different approaches. k-means is runtime-focused. smooths points and
+shows that the runtime on the perturbed set is expected
+polynomial. tensor decomp is accuracy focused. perturbs vectors and
+shows that factorization works robustly with perturbations. these 2
+approaches are just examples in the current lines of research. we
+could also imagine doing [OTHER CREATIVE THING]In classic model,
+algorithm performance is measured by runtime. In learning we have
+another metric: accuracy. can use smoothing to get results on both
+fronts;see thetwo examples below.
+
+% maybe do the main result from the tensor paper instead and mention
+% this result at a higher level. in the conclusion mention how the two
+% papers take different avenues.
+
+\section{$k$-means}
+\subsection{Algorithm}
+The $k$-means algorithm solves the \emph{clustering
+  problem}, set as follows. Given a set $S$ of points in a (generally
+high-dimensional) space $\mathbb{R}^d$, output a $k$-partition of the
+set (a collection of $k$ ``clusters'') such that the elements in each
+cluster are similar under a chosen metric. $k$-means is iterative:
+first it arbitrarily chooses the $k$ cluster centers, then assigns each point in $S$ to the closest center. Next, it
+loops over these clusters and computes the mean of all
+points in the cluster. These means become the new cluster centers and
+the assignment process repeats. The algorithm terminates when the
+local improvements to cluster centers no longer affect the assignment
+of points.
+
+\subsection{$k$-means is Exponential}
+In \cite{KMworstcase}, Vattani shows that an adversary can choose initial cluster centers that will force $k$-means to iterate $2^{\Omega(n)}$ times for $d \ge 2$. This construction is based on [SOMETHING].
+
+\subsection{Smoothed Analysis}
+We give a summary of the argument in \cite{SAkmeans}, by Arthur, Manthey, and Roeglin, that $k$-means has polynomial smoothed complexity. The main result of this section is the following theorem.
+\begin{theorem}
+Fix a set $S^{\prime} \subset [0,1]^d$ of $n$ data points, and independently perturb each point in $S^{\prime}$ by a Gaussian distribution with mean 0 and variance $\sigma^2$. Label the new set $S$. Then the expected running time of $k$-means on $S$ is bounded by a polynomial in $n$ and $1/\sigma$.
+\end{theorem}
+We reason about the potential function \begin{equation}
+\Psi = \sum_{x \in S}||x - c(x)||^2,
+\end{equation} where $c(x)$ is the cluster center to which the point $x$ is assigned in the current iteration. The proof relies on two lemmas: first, that $\Psi$ is bounded by a polynomial after one iteration (define iteration) of the algorithm, and second that $\Psi$ decreases by a polynomial amount in each subsequent iteration (actually, sequences of a few iterations).
+
+\begin{lemma}
+The potential after one iteration is bounded by a polynomial.
+\end{lemma}
+\begin{proof}
+\end{proof}
+
+\section{Tensor Decomposition}
+\subsection{Algorithm}
+\subsection{Worst-case}
+\subsection{Smoothed Analysis}
+
+\section{Conclusion}
+
+\begin{thebibliography}{1}
+  \bibitem{SA}
+    Daniel A. Spielman and Shang{-}Hua Teng,
+    ``Smoothed Analysis of Algorithms: Why the Simplex Algorithm Usually takes Polynomial Time.''
+    \emph{Journal of the ACM, Vol 51 (3)},
+    pp. 385 - 463,
+    2004.
+  \bibitem{KMworstcase}
+    Andrea Vattan 
+  \bibitem{SAkmeans}
+    David Arthur, Bodo Manthey, and Heiko Roeglin,
+    ``Smoothed Analysis of the $k$-means Method.''
+    2010.
+\end{thebibliography}
+\end{document}
