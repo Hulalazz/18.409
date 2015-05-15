@@ -66,9 +66,9 @@
 \noindent Most learning problems are hard in the worst-case, so much
 of the current research focuses on finding good heuristics,
 polynomial-time approximation algorithms, or special cases with
-proveable accuracy and runtime guarantees. But many algorithms that
-are inefficient in the worst case (Simplex being the classical
-example) consistently seem to run fast in practice. Smoothed analysis
+provable accuracy and runtime guarantees. But many algorithms that are
+inefficient in the worst case consistently seem to run fast in
+practice (Simplex being the classical example). Smoothed analysis
 gives a framework for better understanding performance on real-world
 data, specifically for problems where some component is not
 adversarial. This is a natural assumption in learning, since data in
@@ -79,29 +79,37 @@ tensor decomposition.
 \end{abstract}
 
 \section{Introduction}
-Spielman and Teng \cite{SA}, \cite{SAtwo} introduced smooth analysis
+Spielman and Teng \cite{SA}, \cite{SAtwo} introduced smoothed analysis
 to give a more suitable framework for predicting real-life algorithm
 performance. Not every algorithm that runs fast in practice is
 polynomial-time; worst-case analysis falls short of explaining why
-some ``slow'' algorithms are actually quite efficient in practice. The
-original paper \cite{SA} gave a proof that the Simplex algorithm has
-polynomial ``smoothed complexity'': that is, if you assume the data
-are subject to random perturbations (the kind that would arise from
-measurement noise in practice), Simplex runs in expected polynomial
-time. This sparked a host of smoothed analysis proofs involving
-classic combinatorial optimization problems. [EXAMPLES]. The key
-assumption inherent in applying smoothed analysis techniques to an
-algorithm is that some component of the problem is not
-adversarial. The hope is that worst-case inputs are somehow isolated
-in the input space (indeed, the worst-case inputs to many algorithms
-are intricate and fragile), so that any real data will, with high
-probability, not be worst-case. In recent years, there has been an increasing trend of applying smoothed analysis to learning problems \cite{SAtwo}, \cite{SAkmeans}, \cite{PAC}, \cite{TD}.
-
+some ``slow'' algorithms are empirically quite efficient. As a first
+application of their techniques, the original paper \cite{SA} gave a
+proof that the Simplex algorithm has polynomial ``smoothed
+complexity'': that is, if you assume the data are subject to random
+noice (the kind that would arise in many practical scenarios), Simplex
+runs in expected polynomial time. This sparked a host of papers
+applying smoothed analysis to classic combinatorial optimization
+problems. [EXAMPLES]. The key assumption of the smoothed analysis
+setting is that some component of the problem is not adversarial. The
+hope is that worst-case instances are somehow isolated in the input
+space (indeed, the worst-case inputs to many algorithms are intricate
+and fragile), so that any real data is unlikely to be a worst-case
+instance. In recent years, there has been an increasing trend of
+applying smoothed analysis to learning problems \cite{SAtwo},
+\cite{SAkmeans}, \cite{PAC}, \cite{TD}. Some researchers have followed
+the standard line of smoothed analysis, focusing on algorithm
+\emph{runtimes}. Others have expanded the ideas of smoothed analysis
+to show that algorithms still work under noise. We will explain the
+difference by an example.
 \section{Tensor Decomposition}
-\subsection{Algorithm}
-\subsection{Worst-case}
-\subsection{Smoothed Analysis}
+Among other problems, tensor decomposition methods can be used to
+learn topic models, multi-view mixture models, phylogenetic trees, and
+detect communities [CITE--course monograph?]. In practice, tensors we
+want to decompose into factors are random.
 
+\section{$k$-means}
+$k$-means is an algorithm 
 \section{Conclusion}
 
 \begin{thebibliography}{1}
@@ -132,6 +140,11 @@ probability, not be worst-case. In recent years, there has been an increasing tr
     2010.
 
   \bibitem{PAC}
+    Adam Tauman Kalai, Alex Samorodnitsky, and Shang{-}Hua Teng, 
+    ``Learning and Smoothed Analysis'',
+    \emph{IEEE 54th Annual Symposium on Foundations of Computer Science}, 
+    pp. 395-404,
+    2009.
 
   \bibitem{TD}
     Aditya Bhaskara, Moses Charikar, Ankur Moitra, and Aravindan Vijayaraghavan,
