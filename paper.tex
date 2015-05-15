@@ -124,7 +124,7 @@ worst-case and smoothed runtimes. The \emph{worst-case measure} is defined as
 
 $$\mbox{WC}_A(n) = \max_{x \in \Omega_n}T_A[x].$$
 The \emph{smoothed complexity} of $A$ with $\sigma$-Gaussian perturbations is given by
-$$\mbox{Smoothed}_A^{\sigma}(n) = \max_{\x\in [-1,1]^n}
+$$\mbox{Smoothed}_A^{\sigma}(n) = \max_{x\in [-1,1]^n}
 \mathbb{E}_g[T_A(x + g)],$$ where $g$ is a Gaussian random vector of
 variance $\sigma^2$. The original input $x$ is perturbed by $g$ to
 obtain a new input $x + g$, which is given to the algorithm.
@@ -185,12 +185,28 @@ Again, note that this theorem gives no guarantees on the optimality of
 the output. The argument essentially 
 
 \section{Tensor Decomposition}
-Among other problems, tensor decomposition methods can be used to
-learn topic models, multi-view mixture models, phylogenetic trees, and
-detect communities. Tensors are especially useful in learning because
-under mild conditions, the factors of a rank-$k$ 3-tensor decomposition $T =
-\sum_{i=1}^ka_i \otimes b_i \otimes c_i$ are unique
-\cite{tensorunique}.
+(FIX): Among other problems, tensor decomposition methods can be used
+to learn topic models, multi-view mixture models, phylogenetic trees,
+and detect communities. Tensors are especially useful in learning
+because under mild conditions, the factors of a rank-$k$ 3-tensor
+decomposition $T = \sum_{i=1}^ka_i \otimes b_i \otimes c_i$ are unique
+\cite{tensorunique}. These conditions extend naturally to higher-order
+tensors. Assume we are given a $l$-order tensor $T$ of dimension $n$
+(so $T\in \mathbb{R}^{n^{\times l}}$) and of rank $R$ and we want to
+decompose it into a sum of rank-one tensors, i.e.:
+$$T = \sum_{i=1}^R u_i^{(1)}\otimes u_i^{(2)}\otimes\dots\otimes
+u_i^{(l)}$$ We first describe conditions under which such
+decomposition is unique and computable in polynomial time.
+
+The algorithm above works well in the \emph{exact} case, when we know
+$T$. But in the learning setting, we don't know $T$ exactly--we have
+an approximation $\~ T$ of $T$, since we can only take polynomially
+many samples [VAGUE?]. Hence, we need to make sure the algorithm is
+robust in the presence of noise. In particular, we prove that if each
+entry of $E=T-\~ T$ is bounded by $\epsilon \cdot
+\mbox{poly}_l(1/k,1/n,1/\delta)$, then we can compute a decomposition
+in which each rank-$1$ tensor in the decomposition has an additive
+error of at most $\epsilon$.
 
 \section{Conclusion}
 
