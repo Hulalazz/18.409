@@ -69,14 +69,16 @@ polynomial-time approximation algorithms, or special cases with
 provable accuracy and runtime guarantees. But many algorithms that are
 inefficient in the worst case consistently seem to run fast in
 practice (Simplex being the classical example). Smoothed analysis
-gives a framework for better understanding performance on real-world
-data, specifically for problems where some component is not
+gives a theoretical framework for understanding performance on
+real-world data, specifically for problems where some component is not
 adversarial. This is a natural assumption in learning, since data in
 the learning setting are usually prone to measurement or modeling
 noise. We survey the (very much ongoing) application of smoothed
 analysis to learning problems by way of two examples: $k$-means and
 tensor decomposition.
 \end{abstract}
+
+% todo: add formal definition of SA found in \cite{SAtwo} to this section.
 
 \section{Introduction}
 Spielman and Teng \cite{SA}, \cite{SAtwo} introduced smoothed analysis
@@ -86,71 +88,168 @@ polynomial-time; worst-case analysis falls short of explaining why
 some ``slow'' algorithms are empirically quite efficient. As a first
 application of their techniques, the original paper \cite{SA} gave a
 proof that the Simplex algorithm has polynomial ``smoothed
-complexity'': that is, if you assume the data are subject to random
-noice (the kind that would arise in many practical scenarios), Simplex
-runs in expected polynomial time. This sparked a host of papers
-applying smoothed analysis to classic combinatorial optimization
-problems. [EXAMPLES]. The key assumption of the smoothed analysis
+complexity'': if you assume the input data are subject to random
+noise, Simplex runs in expected polynomial time. This sparked a host
+of papers applying smoothed analysis to classic combinatorial
+optimization problems. [EXAMPLES]. The key assumption of the smoothed
 setting is that some component of the problem is not adversarial. The
 hope is that worst-case instances are somehow isolated in the input
 space (indeed, the worst-case inputs to many algorithms are intricate
 and fragile), so that any real data is unlikely to be a worst-case
 instance. In recent years, there has been an increasing trend of
 applying smoothed analysis to learning problems \cite{SAtwo},
-\cite{SAkmeans}, \cite{PAC}, \cite{TD}. Some researchers have followed
-the standard line of smoothed analysis, focusing on algorithm
-\emph{runtimes}. Others have expanded the ideas of smoothed analysis
-to show that algorithms still work under noise. We will explain the
-difference by an example.
+\cite{SAkmeans}, \cite{PAC}, \cite{TD}. (FIX): There are two active fronts:
+some researchers have followed the standard line of smoothed analysis,
+focusing on algorithm \emph{runtimes}. Others have aimed to show that
+algorithms still \emph{work} on perturbed instances of problems; this
+has also been called smoothed analysis, as in \cite{TD}. We give
+examples of both. [explain what 4 and 6 are] In the next section, we
+give a brief formal definition of smoothed analysis, following
+\cite{SAtwo}, to set the environment for the examples that follow. In
+section 3 we discuss at a high level the result of \cite{SAkmeans},
+showing that the $k$-means method has polynomial smoothed runtime. In
+section 4 we examine a tensor decomposition algorithm in a smoothed
+setting, showing not only that it runs in polynomial time on
+smoothed instances, but also that it works provably well, i.e. that it
+recovers good factors. In section 5 we conclude and offer some
+speculation about directions for further research.
+
+\section{Smoothed Analysis: Preliminaries}
+When $A$ is an algorithm for solving problem $P$, we denote by
+$T_A[x]$ the runtime of $A$ on an input instance $x$. We consider the
+input domain $\Omega$ to problem $P$ as the union of disjoint
+subdomains $\{\Omega_1,\ldots, \Omega_n,\ldots\}$, where $\Omega_n$ is
+the family of all inputs of size $n$. Given this setting we can define
+worst-case and smoothed runtimes. The \emph{worst-case measure} is defined as
+
+$$\mbox{WC}_A(n) = \max_{x \in \Omega_n}T_A[x].$$
+The \emph{smoothed complexity} of $A$ with $\sigma$-Gaussian perturbations is given by
+$$\mbox{Smoothed}_A^{\sigma}(n) = \max_{\x\in [-1,1]^n}
+\mathbb{E}_g[T_A(x + g)],$$ where $g$ is a Gaussian random vector of
+variance $\sigma^2$. The original input $x$ is perturbed by $g$ to
+obtain a new input $x + g$, which is given to the algorithm.
+
+We can view $\sigma$ as a parameter that interpolates between
+worst-case and average-case analysis. When $\sigma = 0$ the smoothed
+complexity is the same as the worst-case measure. When $\sigma$ is
+very large, the smoothed complexity approaches the average-case
+complexity, since $g$ dominates the original $x$. Here we are
+interested in the case where $\sigma$ is small compared to $||x||$, so
+that $x + g$ is only a slight perturbation. We now give an example of
+using smoothed analysis to analyze the runtime of a learning
+algorithm, $k$-means.
+
+\section{$k$-means}
+The $k$-means algorithm solves the \emph{clustering problem}, set as
+follows. Given a set $S$ of points in a (generally high-dimensional)
+space $\mathbb{R}^d$, output a $k$-partition of $S$ (a collection of
+$k$ ``clusters'') such that the elements in each cluster are similar
+under a chosen metric. $k$-means begins by arbitrarily choosing the
+$k$ cluster centers (how to choose these centers is the subject of
+much research and debate). The main algorithm consists of two
+iterative steps: first, it assigns each point in $S$ to the closest
+center. Next, it computes the center of mass of each existing cluster
+(the cluster mean). These means become the new cluster centers and the
+assignment process repeats. The algorithm terminates when the local
+improvements to cluster centers no longer affect the assignment of
+points.
+
+In \cite{KMworstcase}, Vattani shows that an adversary can choose
+initial centers that will force $k$-means to iterate $2^{\Omega(n)}$
+times for $d \ge 2$. But $k$-means is usually very fast in practice
+(see e.g. \cite{kmeansfast}). So the setting seems ripe for smoothed
+analysis: there is a large gap between theoretical and observed
+runtimes, and the assumption that data points are subject to noise is
+reasonable. Before we proceed it is important to point out that aside
+from a slow runtime, there is another problem with $k$-means: there
+are no guarantees on the quality of the solution it produces; the
+algorithm is only guaranteed to converge to a local optimum and is
+sensitive to the initial choice of cluster centers
+\cite{kmeanssensitive}. There are mild conditions under which a
+variant of the above algorithm outputs a provably good clustering
+\cite{kmeansprovable}, but these techniques do not use what we
+consider smoothed analysis, instead defining ``separability
+conditions'' on the input instance. We focus on the first problem, a
+problem of runtime, and summarize the argument of Arthur et
+al. \cite{SAkmeans}, the main result of which is the following
+theorem.
+
+\begin{theorem}
+Fix a set $S^{\prime} \subset [0,1]^d$ of $n$ data points, and
+independently perturb each point in $S^{\prime}$ by a Gaussian
+distribution with mean 0 and variance $\sigma^2$. Label the new set
+$S$. Then the expected running time of $k$-means on $S$ is bounded by
+a polynomial in $n$ and $1/\sigma$.
+\end{theorem}
+Again, note that this theorem gives no guarantees on the optimality of
+the output. The argument essentially 
+
 \section{Tensor Decomposition}
 Among other problems, tensor decomposition methods can be used to
 learn topic models, multi-view mixture models, phylogenetic trees, and
-detect communities [CITE--course monograph?]. In practice, tensors we
-want to decompose into factors are random.
+detect communities. Tensors are especially useful in learning because
+under mild conditions, the factors of a rank-$k$ 3-tensor decomposition $T =
+\sum_{i=1}^ka_i \otimes b_i \otimes c_i$ are unique
+\cite{tensorunique}.
 
-\section{$k$-means}
-$k$-means is an algorithm 
 \section{Conclusion}
 
 \begin{thebibliography}{1}
   \bibitem{SA}
-    Daniel A. Spielman and Shang{-}Hua Teng,
+    Daniel A. Spielman and Shang{-}Hua Teng.
     ``Smoothed Analysis of Algorithms: Why the Simplex Algorithm Usually takes Polynomial Time.''
     \emph{Journal of the ACM, Vol 51 (3)},
     pp. 385 - 463,
     2004.
 
   \bibitem{SAtwo}
-    Daniel A. Spielman and Shang{-}Hua Teng,
+    Daniel A. Spielman and Shang{-}Hua Teng.
     ``Smoothed Analysis: An Attempt to Explain the Behavior of Algorithms in Practice''
     \emph{Communications of the ACM, Vol. 52 No. 10},
     pp. 76-84,
     2009.
 
   \bibitem{KMworstcase}
-    Andrea Vattani,
+    Andrea Vattani.
     ``k-means Requires Exponentially Many Iterations Even in the Plane.'' 
     \emph{ Proc. of the 25th ACM Symp. on Computational Geometry (SoCG)}, 
     pp 324–332, 
     2009.
     
   \bibitem{SAkmeans}
-    David Arthur, Bodo Manthey, and Heiko Roeglin,
+    David Arthur, Bodo Manthey, and Heiko Roeglin.
     ``Smoothed Analysis of the $k$-means Method.''
     2010.
 
   \bibitem{PAC}
-    Adam Tauman Kalai, Alex Samorodnitsky, and Shang{-}Hua Teng, 
+    Adam Tauman Kalai, Alex Samorodnitsky, and Shang{-}Hua Teng.
     ``Learning and Smoothed Analysis'',
     \emph{IEEE 54th Annual Symposium on Foundations of Computer Science}, 
     pp. 395-404,
     2009.
 
   \bibitem{TD}
-    Aditya Bhaskara, Moses Charikar, Ankur Moitra, and Aravindan Vijayaraghavan,
+    Aditya Bhaskara, Moses Charikar, Ankur Moitra, and Aravindan Vijayaraghavan.
     ``Smoothed Analysis of Tensor Decomposition'',
-    CoRR,
+    \emph{CoRR},
     2013.
+
+  \bibitem{tensorunique}
+    J. Kruskal. 
+    ``Three-way Arrays: Rank and Uniqueness of Trilinear Decompositions'',
+    \emph{Linear Algebra and Applications}, 
+    18:95–138, 
+    1977.
+  \bibitem{kmeansprovable}
+    Rafail Ostrovsky and Yuval Rabani and et al.
+    ``The Effectiveness of Lloyd-Type Methods for the k-Means Problem'',
+
+  \bibitem{kmeanssensitive}
+    G. Milligan. 
+    ``An examination of the effect of six types of error perturbation on fifteen clustering
+    algorithms,'' 
+    \emph{Psychometrika}, 
+    45:325–342, 1980.
 
 \end{thebibliography}
 \end{document}
