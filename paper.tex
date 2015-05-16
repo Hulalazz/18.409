@@ -16,8 +16,8 @@
 
 \usepackage{titlesec} % Allows customization of titles
 \titlelabel{\thetitle.\quad}
-%\renewcommand\thesection{\Roman{section}} % Roman numerals for the sections
-%\renewcommand\thesubsection{\Roman{subsection}} % Roman numerals for subsections
+\renewcommand\thesection{\Roman{section}} % Roman numerals for the sections
+\renewcommand\thesubsection{\Roman{subsection}} % Roman numerals for subsections
 %\titleformat{\section}[block]{\large\scshape\centering}{\thesection.}{1em}{} % Change the look of the section titles
 %\titleformat{\subsection}[block]{\large}{\thesubsection.}{1em}{} % Change the look of the section titles
 
@@ -34,6 +34,7 @@
 \newtheorem{corollary}{Corollary}
 \theoremstyle{definition}
 \newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
 
 
 % --------------------
@@ -80,8 +81,6 @@ tensor decomposition.
 
 % todo: add formal definition of SA found in \cite{SAtwo} to this section.
 
-\begin{multicols}{2}
-
 \section{Introduction}
 Spielman and Teng \cite{SA}, \cite{SAtwo} introduced smoothed analysis
 to give a more suitable framework for predicting real-life algorithm
@@ -93,27 +92,21 @@ proof that the Simplex algorithm has polynomial ``smoothed
 complexity'': if you assume the input data are subject to random
 noise, Simplex runs in expected polynomial time. This sparked a host
 of papers applying smoothed analysis to classic combinatorial
-optimization problems. [EXAMPLES]. The key assumption of the smoothed
+optimization problems \cite{SAtwo}. The key assumption of the smoothed
 setting is that some component of the problem is not adversarial. The
 hope is that worst-case instances are somehow isolated in the input
 space (indeed, the worst-case inputs to many algorithms are intricate
 and fragile), so that any real data is unlikely to be a worst-case
 instance. In recent years, there has been an increasing trend of
 applying smoothed analysis to learning problems \cite{SAtwo},
-\cite{SAkmeans}, \cite{PAC}, \cite{TD}. (FIX): There are two active fronts:
-some researchers have followed the standard line of smoothed analysis,
-focusing on algorithm \emph{runtimes}. Others have aimed to show that
-algorithms still \emph{work} on perturbed instances of problems; this
-has also been called smoothed analysis, as in \cite{TD}. We give
-examples of both. [explain what 4 and 6 are] In the next section, we
-give a brief formal definition of smoothed analysis, following
+\cite{SAkmeans}, \cite{PAC}, \cite{TD}. The noisy assumptions required in the smoothed model are natural in the learning setting, where data are gathered by surveys, measurements, samples, and other noise-prone or imperfect methods. In the next section, we give a brief formal definition of smoothed analysis, following
 \cite{SAtwo}, to set the environment for the examples that follow. In
-section 3 we discuss at a high level the result of \cite{SAkmeans},
-showing that the $k$-means method has polynomial smoothed runtime. In
-section 4 we examine a tensor decomposition algorithm in a smoothed
+Section III we discuss at a high level the result of \cite{SAkmeans},
+showing that the $k$-means clustering method has polynomial smoothed runtime. In
+Section IV we examine a tensor decomposition algorithm in a smoothed
 setting, showing not only that it runs in polynomial time on
 smoothed instances, but also that it works provably well, i.e. that it
-recovers good factors. In section 5 we conclude and offer some
+recovers good factors. In Section V we conclude and offer some
 speculation about directions for further research.
 
 \section{Preliminaries}
@@ -159,11 +152,11 @@ points.
 In \cite{KMworstcase}, Vattani shows that an adversary can choose
 initial centers that will force $k$-means to iterate $2^{\Omega(n)}$
 times for $d \ge 2$. But $k$-means is usually very fast in practice
-(see e.g. \cite{kmeansfast}). So the setting seems ripe for smoothed
+(see, for instance, \cite{kmeansfast}). So the setting seems ripe for smoothed
 analysis: there is a large gap between theoretical and observed
 runtimes, and the assumption that data points are subject to noise is
 reasonable. Before we proceed it is important to point out that aside
-from a slow runtime, there is another problem with $k$-means: there
+from a slow worst-case runtime, there is another problem with $k$-means: there
 are no guarantees on the quality of the solution it produces; the
 algorithm is only guaranteed to converge to a local optimum and is
 sensitive to the initial choice of cluster centers
@@ -177,41 +170,120 @@ al. \cite{SAkmeans}, the main result of which is the following
 theorem.
 
 \begin{theorem}
+\label{sakmeans}
 Fix a set $S^{\prime} \subset [0,1]^d$ of $n$ data points, and
 independently perturb each point in $S^{\prime}$ by a Gaussian
 distribution with mean 0 and variance $\sigma^2$. Label the new set
 $S$. Then the expected running time of $k$-means on $S$ is bounded by
 a polynomial in $n$ and $1/\sigma$.
 \end{theorem}
-Again, note that this theorem gives no guarantees on the optimality of
-the output. The argument essentially 
+The proof of Theorem \ref{sakmeans} makes heavy use of the potential
+function $$\Psi = \sum_{x \in S}||x - c(x)||^2,$$ where $c(x)$ is the
+center of the cluster to which the point $x$ is assigned, and consists
+of two steps. It first shows that the potential is bounded by a
+polynomial after the first iteration of the algorithm. The second step
+shows that the potential decreases by a polynomial in each iteration
+(or rather, in a sequence of iterations). The key insight of the paper
+is its introduction of \emph{transition blueprints}, directed
+multigraphs that model the flow of points between clusters in an
+iteration of the algorithm. Vertices are clusters and edges are drawn when points in $S$ go from one cluster to another in an iteration. The potential can decrease in two ways:
+cluster centers can change, or points can be reassigned from one
+cluster to another. No iteration can decrease the potential. For the
+potential difference to be small in a given iteration, it must be the
+case that no cluster center moved very much, and that no points were
+reassigned to a cluster very far from their current cluster. The paper
+examines the probability that the potential decrease is small for a
+given transition blueprint; this leads naturally to an upper-bound on
+the probability that the minimum potential decrease across all iterations is small.
+Because of the small perturbations of the input set, transition blueprints are general enough so that each one represents multiple possible iterations of the algorithm, but specific enough that they \emph{almost} uniquely determine what happens during an iteration. The paper does a case-by-case analysis of different types of blueprints to show that with high probability, there are no iterations where cluster centers don't move far and points don't get swapped between far-away clusters. This implies the result.
+
+$k$-means has expected polynomial smoothed complexity, matching observations
+in practice. The full analysis is quite intricate, so the resulting
+polynomial has degree much higher than empirical results would
+suggest, but this is in line with other results in smoothed analysis
+of runtimes \cite{SAtwo}. But we still have no provable guarantees for
+optimality. In the next section, we examine in detail the more interesting example of analyzing an algorithm
+\emph{with provable guarantees} in a smoothed setting.
 
 \section{Tensor Decomposition}
-(FIX): Among other problems, tensor decomposition methods can be used
-to learn topic models, multi-view mixture models, phylogenetic trees,
-and detect communities. Tensors are especially useful in learning
-because under mild conditions, the factors of a rank-$k$ 3-tensor
-decomposition $T = \sum_{i=1}^ka_i \otimes b_i \otimes c_i$ are unique
-\cite{tensorunique}. These conditions extend naturally to higher-order
-tensors. Assume we are given a $l$-order tensor $T$ of dimension $n$
-(so $T\in \mathbb{R}^{n^{\times l}}$) and of rank $R$ and we want to
-decompose it into a sum of rank-one tensors, i.e.:
-$$T = \sum_{i=1}^R u_i^{(1)}\otimes u_i^{(2)}\otimes\dots\otimes
-u_i^{(l)}$$ We first describe conditions under which such
-decomposition is unique and computable in polynomial time.
+Tensor decomposition methods can be used for community detection and for learning  topic models (including LDA), multi-view mixture models, and phylogenetic trees. Tensors are especially useful because
+under mild conditions, the factors of a rank-$R$ 3-tensor decomposition $T =
+\sum_{i=1}^Ra_i \otimes b_i \otimes c_i$ are unique
+\cite{tensorunique}, and there exists a polynomial-time algorithm for recovering them, initially due to Jennrich. Denote by $A$ the $n\times R$ matrix whose columns are the $a_i$, and likewise for $B$. Then the conditions for Jennrich's algorithm are that $A$ and $B$ have rank $R$, and that no two vectors $c_i, c_j$ are linearly dependent. Jennrich's algorithm extends naturally to higher-order tensors. Assume we are given a order-$l$ tensor $T$ of dimension $n$ (so $T\in \mathbb{R}^{n^{\times l}}$) and rank $R$. We want to decompose it into a sum of rank-one tensors, i.e.:
+$$T = \sum_{i=1}^R u_i^{(1)}\otimes u_i^{(2)}\otimes\dots\otimes u_i^{(l)}.$$
+Jennrich's algorithm works for order-$3$ tensors, so to work with the general case a good approach is to flatten a tensor $T$ into an order $3$ tensor so as to obtain a decomposition, through Jennrich's, of the form
+$$T = \sum_{i=1}^R U_i\otimes V_i\otimes W_i$$
+where
+$$U_i=u_i^{(1)}\odot\dots\odot u_i^{(\lfloor\frac{l-1}{2}\rfloor)},\  V_i=v_i^{(\lfloor\frac{l-1}{2}\rfloor+1)}\odot\dots\odot v_i^{(2\lfloor\frac{l-1}{2}\rfloor)} \text{, and } W_i = u_i^{(l)}\text{ or }u_i^{(l-1)}\odot u_i^{(l)}.$$
+Here $\odot$ is the Khatri-Rao product: given $M \in \mathbb{R}^{m\times r},\ N \in \mathbb{R}^{n\times r}$, $M\odot N$ is the matrix of dimension $mn\times r$ whose $i$-th column is $M_i\otimes N_i$.
+[MORE--it also only works for 3-tensors] Jennrich's algorithm works only if $R \le n$, that is, only if the rank of the tensor is at most the dimension of its factors. In the overcomplete case where $R > n$, we can "flatten" the factors using the Khatrio-Rao product; if the flattened factors still satisfy the conditions of Jennrich's algorithm, then we can solve this higher-order decomposition problem. Also note that overcomplete decomposition is NP-hard in general \cite{tensorhard1} \cite{tensorhard2}. [MENTION REM 1.8 before next sentence / paragraph] We show that in a smoothed setting where the tensor $T$ is perturbed, the flattened factors will indeed satisfy the conditions for Jennrich's algorithm, so we can get around the worst-case inefficiency.
 
-The algorithm above works well in the \emph{exact} case, when we know
-$T$. But in the learning setting, we don't know $T$ exactly--we have
-an approximation $\~ T$ of $T$, since we can only take polynomially
-many samples [VAGUE?]. Hence, we need to make sure the algorithm is
-robust in the presence of noise. In particular, we prove that if each
-entry of $E=T-\~ T$ is bounded by $\epsilon \cdot
-\mbox{poly}_l(1/k,1/n,1/\delta)$, then we can compute a decomposition
-in which each rank-$1$ tensor in the decomposition has an additive
-error of at most $\epsilon$.
+TODO: put remark 1.8, condition 2.2 and a noiseless version of corollary 2.4 here. they explain very clearly why we want to show that the kruskal rank multiplies.
 
+The overcomplete algorithm above [THE ONE MENTIONED IN REM 1.8] works well in the \emph{exact} case, when we know $T$. But in the learning setting, we don't know $T$ exactly--we have an approximation $\~ T$ of $T$, since we can only take polynomially many samples [VAGUE?]. Hence, we need to make sure the algorithm is robust in the presence of noise. In particular, we prove that if each entry of $E=T-\~ T$ is bounded by $\epsilon \cdot \mbox{poly}_l(1/k,1/n,1/\delta)$, then we can compute a decomposition in which each rank-$1$ tensor in the decomposition has an additive error of at most $\epsilon$. 
+
+%technical lemma
+\begin{lemma}
+Let $\mathcal{V}\subset \mathbb{R}^{nm}$ be a subspace with $\dim(\mathcal{V})=\delta nm$. Furthermore, suppose $r,\theta,\delta'$ satisfy $\delta'\leq \delta/2$, $r\delta' m<\delta n/2$ and $\theta= \frac{1}{nm^{3/2}}$. Then there exist $r$ matrices $M_1, M_2,\dots, M_r$ of dimension $n\times m$ such that
+\begin{enumerate}
+\item $vec(M_i)\in \mathcal{V}$ $\forall i\in [r]$
+\item $M_1,\dots, M_r$ form an ordered $(\theta,\delta')$ orthogonal system
+
+\end{enumerate}
+where $\vec{M_i}$ is the vector resulting from flattening $M_i$. In particular, if $m\leq \sqrt{n}$, the matrices form an ordered $(\theta, \delta/2)$ orthogonal system.
+\end{lemma}
+\begin{proof}
+We treat vectors $M\in \mathcal{V}$ as $n\times m$ matrices for simplicity. The proof of Lemma 1 involves various intermediate results.
+
+%proof of technical lemma
+
+\begin{definition} (Robust Dimension of Projections) Let
+$$\dim_i^\tau (\mathcal{V}) = \max_{d}\text{s.t. }\exists\text{ orthonormal }v_1,\dots,v_d\in \mathbb{R}^n \text{ and }M_1,\dots,M_d\in\mathcal{V} $$
+$$\text{ with } ||M_t||\leq \tau \text{ and } v_t=M_t(i)\text{ }\forall t\in[d]$$
+\end{definition}
+\noindent We try to find many column projections having robust dimension of about $\delta n$. We have the
+
+\begin{lemma}
+For a subspace $\mathcal{V}\subset \mathbb{R}^{p_1\cdot p_2}$ and for any $\tau\geq \sqrt{p_2}$ we have:
+$$\sum_{i\in[p_2]}\dim_i^\tau (\mathcal{V})\geq \dim(\mathcal{V})$$
+\end{lemma}
+
+\begin{proof}
+Writing $d=\dim(\mathcal{V})$ and taking $B$ to be a $(p_1p_2)\times d$ matrix whose columns are an orthonormal basis of $\mathcal{V}$ we have $\sigma_d(B)=1$. We form $p_2$ matrices of dimension $p_1$ by indexing the rows of $B$ by $[p_1]\times[p_2]$ and taking $B_i$ to be the rows corresponding to indices of the form $(j,i)$ with $j\in[p_1]$. We define
+$d_i=\max_t \text{s.t. } \sigma_t(B_i)\geq \frac{1}{\sqrt{p_2}}$
+We show $$\sum_{i\in[p_2]}\dim_i^\tau (\mathcal{V})\geq \sum_{i\in[p_2]} d_i\geq \dim(\mathcal{V})$$.
+
+Suppose the RHS of the inequality was false. Then define $S_i\subset \mathbb{R}^d$ to be the $d-d_i$-dimensional subspace spanned by the $d-d_i$ rightmost singular vectors of $B_i$. Since $d-\sum_i d_i>0$, $\cap_i S_i^\perp\neq \emptyset$, so we can take $\alpha\in \cap_i S_i^\perp$ to be a unit vector. Then for every $i$ we have $||B_i\alpha||\leq \frac{1}{\sqrt{p_2}}$, but this implies $\sigma_d(B)\leq \sum_i||B_i\alpha||^2\leq p_2\cdot\frac{1}{p_2}=1$, a contradiction.
+
+For the LHS, we consider the $d_i$ top left-singular vectors of $B_i$. From a general result for matrices (see lemma B.1 in \cite{TD}), they can be represented as $\beta_j B_i$ where $1\leq j\leq d_i$ and $\beta_j\in \mathbb{R}^{d}$ satisfies $||\beta_j||_2\leq \sqrt{p_2}$. Then $\beta_1B,\dots,\beta_{d_i}B$ are vectors in $\mathbb{R}^{p_1p_2}$ that show $\dim_i^\tau(\mathcal{V})\geq d_i$.
+
+\end{proof}
+
+We can now construct the matrices $M_i$
+
+
+%end of proof
+\end{proof}
 \section{Conclusion}
-
+Smoothed analysis is well-suited to learning problems because learning
+data are inherently noisy. What's not so clear is the best way to
+apply these techniques: what exactly should be ``smoothed'' with
+perturbations? What should we look at once we've perturbed the inputs?
+In this survey we've given two examples of smoothed analysis in
+learning: one in a setting with provable guarantees and the other
+without. These two examples represent, to us, two different vectors
+for further research. Many learning heuristics have no good runtime
+bounds but run efficiently in practice. In these cases, smoothed
+analysis may be able to bridge the gap, as it has for $k$-means. Separately, there are several machine learning
+algorithms that work provably well under certain mild input
+conditions--finding such algorithms has been a major subject of
+machine learning research in recent years. Less well-known is whether these
+input conditions are preserved by the application of noise, and if
+they are, whether the output of the algorithm is stable. In the case
+of tensor decomposition, \cite{TD} indeed shows that the conditions
+for uniqueness are preserved by Gaussian perturbation, and that the
+factors of the perturbed tensor are close to the factors of the
+original tensor, so the output is consistent. Whether these results translate to other algorithms seems to be a wide-open area for further investigation.
 
 
 \begin{thebibliography}{1}
@@ -226,14 +298,14 @@ error of at most $\epsilon$.
     Daniel A. Spielman and Shang{-}Hua Teng.
     ``Smoothed Analysis: An Attempt to Explain the Behavior of Algorithms in Practice''
     \emph{Communications of the ACM, Vol. 52 No. 10},
-    pp. 76-84,
+    pp. 76 - 84,
     2009.
 
   \bibitem{KMworstcase}
     Andrea Vattani.
     ``k-means Requires Exponentially Many Iterations Even in the Plane.'' 
     \emph{ Proc. of the 25th ACM Symp. on Computational Geometry (SoCG)}, 
-    pp 324–332, 
+    pp 324-332, 
     2009.
     
   \bibitem{SAkmeans}
@@ -245,7 +317,7 @@ error of at most $\epsilon$.
     Adam Tauman Kalai, Alex Samorodnitsky, and Shang{-}Hua Teng.
     ``Learning and Smoothed Analysis'',
     \emph{IEEE 54th Annual Symposium on Foundations of Computer Science}, 
-    pp. 395-404,
+    pp. 395 - 404,
     2009.
 
   \bibitem{TD}
@@ -258,7 +330,7 @@ error of at most $\epsilon$.
     J. Kruskal. 
     ``Three-way Arrays: Rank and Uniqueness of Trilinear Decompositions'',
     \emph{Linear Algebra and Applications}, 
-    18:95–138, 
+    18:95 - 138, 
     1977.
   \bibitem{kmeansprovable}
     Rafail Ostrovsky and Yuval Rabani and et al.
@@ -269,8 +341,25 @@ error of at most $\epsilon$.
     ``An examination of the effect of six types of error perturbation on fifteen clustering
     algorithms,'' 
     \emph{Psychometrika}, 
-    45:325–342, 1980.
+    45:325 - 342, 1980.
 
+  \bibitem{kmeansfast}
+    Sariel Har{-}Peled and Bardia Sadri.
+    ``How fast is the k-means method?'',
+    \emph{Algorithmica},
+    41(3):185 - 202,
+    2005.
+    
+  \bibitem{tensorhard1}
+    Johan H{\aa}stad.
+    ``Tensor Rank is NP-complete'',
+    \emph{Journal of Algorithms}
+    pp. 644 - 654,
+    1990.
+  \bibitem{tensorhard2}
+    Christopher J. Hillar and Lek{-}Heng Lim.
+    ``Most tensor problems are {NP} hard''
+    \emph{CoRR},
+    2009.
 \end{thebibliography}
-\end{multicols}
 \end{document}
